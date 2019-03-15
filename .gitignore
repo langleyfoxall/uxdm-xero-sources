@@ -1,4 +1,5 @@
 vendor/
+certs/
 
 .DS_Store
 .env

@@ -1,0 +1,19 @@
+{
+	"authors": [
+		{
+			"name": "Dexter Marks-Barber",
+			"email": "dexter@langleyfoxall.co.uk"
+		}
+	],
+    "require": {
+        "calcinai/xero-php": "^1.8",
+        "divineomega/uxdm": "^2.7",
+		"divineomega/dotenv-loader": "^2.0",
+		"illuminate/support": "^5.1"
+    },
+	"autoload": {
+		"psr-4": {
+			"LangleyFoxall\\uxdm\\": "src/"
+		}
+	}
+}

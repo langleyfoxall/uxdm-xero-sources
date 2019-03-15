@@ -1,0 +1,9 @@
+version: '2'
+
+services:
+  develop:
+    image: richarvey/nginx-php-fpm:latest
+    volumes:
+      - ./:/var/www/html
+    ports:
+      - "80:80"
