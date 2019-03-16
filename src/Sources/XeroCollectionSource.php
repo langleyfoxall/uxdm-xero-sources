@@ -16,6 +16,12 @@ class XeroCollectionSource implements SourceInterface, \ArrayAccess
     /** @var array|string[] $fields */
     protected $fields;
 
+    /** @var \Closure $dataRowMap */
+    protected $dataRowMap;
+
+    /** @var \Closure $dataRowFilter */
+    protected $dataRowFilter;
+
     /** @var int $perPage */
     protected $perPage = 1000;
 
@@ -56,6 +62,52 @@ class XeroCollectionSource implements SourceInterface, \ArrayAccess
     }
 
     /**
+     * @param \Closure $closure
+     * @return $this
+     */
+    public function filterCollection(\Closure $closure)
+    {
+        $out = $closure($this->collection);
+
+        if ($out instanceof Collection) {
+            $this->collection = $collection;
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param \Closure $closure
+     * @return $this
+     */
+    public function mapCollection(\Closure $closure)
+    {
+        return $this->filterCollection($closure);
+    }
+
+    /**
+     * @param \Closure $closure
+     * @return $this
+     */
+    public function setDataRowMap(\Closure $closure)
+    {
+        $this->dataRowMap = $closure;
+
+        return $this;
+    }
+
+    /**
+     * @param \Closure $closure
+     * @return $this
+     */
+    public function setDataRowFilter(\Closure $closure)
+    {
+        $this->dataRowFilter = $closure;
+
+        return $this;
+    }
+
+    /**
      * @return Collection|Model[]
      */
     public function getCollection()
@@ -89,7 +141,7 @@ class XeroCollectionSource implements SourceInterface, \ArrayAccess
         $offset = (($page - 1) * $this->perPage);
         $rows = array_slice((array)$this->collection, $offset, $this->perPage);
 
-        return array_map(function (Model $model) use ($fieldsToRetrieve) {
+        $dataRows = array_map(function (Model $model) use ($fieldsToRetrieve) {
             $model = $model->toStringArray();
 
             if (!empty($fieldsToRetrieve)) {
@@ -105,17 +157,32 @@ class XeroCollectionSource implements SourceInterface, \ArrayAccess
             $dataRow = new DataRow;
             $dottedArray = Arr::dot($model);
 
-
             foreach ($dottedArray as $field => $value) {
                 $dataRow->addDataItem(new DataItem($field, $value));
             }
 
             return $dataRow;
         }, $rows);
+
+        if (!empty($this->dataRowFilter)) {
+            $dataRows = array_filter(
+                $dataRows,
+                $this->dataRowFilter
+            );
+        }
+
+        if (!empty($this->dataRowMap)) {
+            $dataRows = array_map(
+                $this->dataRowMap,
+                $dataRows
+            );
+        }
+
+        return $dataRows;
     }
 
     /**
-     * @return array
+     * @return array|string[]
      */
     public function getFields()
     {
