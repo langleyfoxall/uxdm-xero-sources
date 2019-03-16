@@ -9,8 +9,14 @@ class XeroQuerySource implements SourceInterface
 	/** @var Query $query */
 	protected $query;
 
-	/** @var XeroCollectionSource */
+	/** @var XeroCollectionSource $collectionSource */
 	protected $collectionSource;
+
+	/** @var \Closure $dataRowFilter */
+	protected $dataRowFilter;
+
+	/** @var \Closure $dataRowMap */
+	protected $dataRowMap;
 
 	/**
 	 * @param Query $query
@@ -29,6 +35,30 @@ class XeroQuerySource implements SourceInterface
 		$this->bootstrapIfNotSet();
 
 		return $this->collectionSource;
+	}
+
+	/**
+	 * @param \Closure $closure
+	 *
+	 * @return $this
+	 */
+	public function setDataRowMap(\Closure $closure)
+	{
+		$this->dataRowMap = $closure;
+
+		return $this;
+	}
+
+	/**
+	 * @param \Closure $closure
+	 *
+	 * @return $this
+	 */
+	public function setDataRowFilter(\Closure $closure)
+	{
+		$this->dataRowFilter = $closure;
+
+		return $this;
 	}
 
 	/**
@@ -120,5 +150,17 @@ class XeroQuerySource implements SourceInterface
 		$this->collectionSource->perPage(
 			count($collection)
 		);
+
+		if ($this->dataRowFilter) {
+			$this->collection()->setDataRowFilter(
+				$this->dataRowFilter
+			);
+		}
+
+		if ($this->dataRowMap) {
+			$this->collection()->setDataRowMap(
+				$this->dataRowMap
+			);
+		}
 	}
 }
