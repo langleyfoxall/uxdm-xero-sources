@@ -2,21 +2,19 @@
 namespace LangleyFoxall\uxdm\Sources;
 
 use DivineOmega\uxdm\Interfaces\SourceInterface;
+use LangleyFoxall\uxdm\Traits\HasFilters;
+use LangleyFoxall\uxdm\Traits\HasMaps;
 use XeroPHP\Remote\Query;
 
 class XeroQuerySource implements SourceInterface
 {
+	use HasFilters, HasMaps;
+
 	/** @var Query $query */
 	protected $query;
 
 	/** @var XeroCollectionSource $collectionSource */
 	protected $collectionSource;
-
-	/** @var \Closure $dataRowFilter */
-	protected $dataRowFilter;
-
-	/** @var \Closure $dataRowMap */
-	protected $dataRowMap;
 
 	/**
 	 * @param Query $query
@@ -35,30 +33,6 @@ class XeroQuerySource implements SourceInterface
 		$this->bootstrapIfNotSet();
 
 		return $this->collectionSource;
-	}
-
-	/**
-	 * @param \Closure $closure
-	 *
-	 * @return $this
-	 */
-	public function setDataRowMap(\Closure $closure)
-	{
-		$this->dataRowMap = $closure;
-
-		return $this;
-	}
-
-	/**
-	 * @param \Closure $closure
-	 *
-	 * @return $this
-	 */
-	public function setDataRowFilter(\Closure $closure)
-	{
-		$this->dataRowFilter = $closure;
-
-		return $this;
 	}
 
 	/**
@@ -151,15 +125,15 @@ class XeroQuerySource implements SourceInterface
 			count($collection)
 		);
 
-		if ($this->dataRowFilter) {
-			$this->collection()->setDataRowFilter(
-				$this->dataRowFilter
+		if (!empty($this->dataRowFilters)) {
+			$this->collection()->mergeDataRowFilters(
+				$this->dataRowFilters
 			);
 		}
 
-		if ($this->dataRowMap) {
-			$this->collection()->setDataRowMap(
-				$this->dataRowMap
+		if (!empty($this->dataRowMaps)) {
+			$this->collection()->mergeDataRowMaps(
+				$this->dataRowMaps
 			);
 		}
 	}

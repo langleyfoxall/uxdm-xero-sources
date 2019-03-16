@@ -5,22 +5,20 @@ use DivineOmega\uxdm\Interfaces\SourceInterface;
 use DivineOmega\uxdm\Objects\DataItem;
 use DivineOmega\uxdm\Objects\DataRow;
 use Illuminate\Support\Arr;
+use LangleyFoxall\uxdm\Traits\HasFilters;
+use LangleyFoxall\uxdm\Traits\HasMaps;
 use XeroPHP\Remote\Collection;
 use XeroPHP\Remote\Model;
 
 class XeroCollectionSource implements SourceInterface, \ArrayAccess
 {
+	use HasFilters, HasMaps;
+
 	/** @var Collection|Model[] */
 	protected $collection;
 
 	/** @var array|string[] $fields */
 	protected $fields;
-
-	/** @var \Closure $dataRowMap */
-	protected $dataRowMap;
-
-	/** @var \Closure $dataRowFilter */
-	protected $dataRowFilter;
 
 	/** @var int $perPage */
 	protected $perPage = 1000;
@@ -89,30 +87,6 @@ class XeroCollectionSource implements SourceInterface, \ArrayAccess
 	}
 
 	/**
-	 * @param \Closure $closure
-	 *
-	 * @return $this
-	 */
-	public function setDataRowMap(\Closure $closure)
-	{
-		$this->dataRowMap = $closure;
-
-		return $this;
-	}
-
-	/**
-	 * @param \Closure $closure
-	 *
-	 * @return $this
-	 */
-	public function setDataRowFilter(\Closure $closure)
-	{
-		$this->dataRowFilter = $closure;
-
-		return $this;
-	}
-
-	/**
 	 * @return Collection|Model[]
 	 */
 	public function getCollection()
@@ -170,18 +144,22 @@ class XeroCollectionSource implements SourceInterface, \ArrayAccess
 			return $dataRow;
 		}, $rows);
 
-		if (!empty($this->dataRowFilter)) {
-			$dataRows = array_filter(
-				$dataRows,
-				$this->dataRowFilter
-			);
+		if (!empty($this->dataRowFilters)) {
+			foreach ($this->dataRowFilters as $filter) {
+				$dataRows = array_filter(
+					$dataRows,
+					$filter
+				);
+			}
 		}
 
-		if (!empty($this->dataRowMap)) {
-			$dataRows = array_map(
-				$this->dataRowMap,
-				$dataRows
-			);
+		if (!empty($this->dataRowMaps)) {
+			foreach ($this->dataRowMaps as $map) {
+				$dataRows = array_map(
+					$map,
+					$dataRows
+				);
+			}
 		}
 
 		return $dataRows;
