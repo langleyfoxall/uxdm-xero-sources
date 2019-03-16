@@ -1,4 +1,6 @@
 {
+    "name": "langleyfoxall/xero-uxdm-sources",
+    "description": "Xero sources for UXDM",
 	"authors": [
 		{
 			"name": "Dexter Marks-Barber",
@@ -15,5 +17,6 @@
 		"psr-4": {
 			"LangleyFoxall\\uxdm\\": "src/"
 		}
-	}
+	},
+    "license": "LGPL-3.0-only"
 }
