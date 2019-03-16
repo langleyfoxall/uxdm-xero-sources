@@ -4,7 +4,7 @@ namespace LangleyFoxall\uxdm\Traits;
 trait HasFilters
 {
 	/** @var array|\Closure[] $dataRowFilters */
-	protected $dataRowFilters;
+	protected $dataRowFilters = [];
 
 	/**
 	 * @param \Closure $closure

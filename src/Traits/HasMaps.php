@@ -4,7 +4,7 @@ namespace LangleyFoxall\uxdm\Traits;
 trait HasMaps
 {
 	/** @var array|\Closure[] $dataRowMaps */
-	protected $dataRowMaps;
+	protected $dataRowMaps = [];
 
 	/**
 	 * @param \Closure $closure
