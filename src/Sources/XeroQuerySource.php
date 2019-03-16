@@ -6,103 +6,119 @@ use XeroPHP\Remote\Query;
 
 class XeroQuerySource implements SourceInterface
 {
-    /** @var Query $query */
-    protected $query;
+	/** @var Query $query */
+	protected $query;
 
-    /** @var XeroCollectionSource */
-    protected $collectionSource;
+	/** @var XeroCollectionSource */
+	protected $collectionSource;
 
-    /**
-     * @param Query $query
-     */
-    public function __construct(Query $query)
-    {
-        $this->query = $query;
-    }
+	/**
+	 * @param Query $query
+	 */
+	public function __construct(Query $query)
+	{
+		$this->query = $query;
+	}
 
-    /**
-     * @param \Closure $closure
-     * @return $this
-     */
-    public function query(\Closure $closure)
-    {
-        $out = $closure($this->query);
+	/**
+	 * @throws \XeroPHP\Remote\Exception
+	 * @return XeroCollectionSource
+	 */
+	public function collection()
+	{
+		$this->bootstrapIfNotSet();
 
-        if ($out instanceof Query) {
-            $this->query = $query;
-        }
+		return $this->collectionSource;
+	}
 
-        return $this;
-    }
+	/**
+	 * @param \Closure $closure
+	 *
+	 * @return $this
+	 */
+	public function query(\Closure $closure)
+	{
+		$out = $closure($this->query);
 
-    /**
-     * @param int   $page
-     * @param array $fieldsToRetrieve
-     * @throws \XeroPHP\Remote\Exception
-     * @return array
-     */
-    public function getDataRows($page = 1, $fieldsToRetrieve = [])
-    {
-        $this->bootstrap($page);
+		if ($out instanceof Query) {
+			$this->query = $out;
+		}
 
-        return $this->collectionSource->getDataRows(
-            1, $fieldsToRetrieve
-        );
-    }
+		return $this;
+	}
 
-    /**
-     * @return int
-     */
-    public function countDataRows()
-    {
-        $this->bootstrapIfNotSet();
+	/**
+	 * @param int   $page
+	 * @param array $fieldsToRetrieve
+	 *
+	 * @throws \XeroPHP\Remote\Exception
+	 * @return array
+	 */
+	public function getDataRows($page = 1, $fieldsToRetrieve = [])
+	{
+		$this->bootstrap($page);
 
-        return $this->collectionSource->countDataRows();
-    }
+		return $this->collectionSource->getDataRows(
+			1, $fieldsToRetrieve
+		);
+	}
 
-    /**
-     * @return int
-     */
-    public function countPages()
-    {
-        return 1;
-    }
+	/**
+	 * @throws \XeroPHP\Remote\Exception
+	 * @return int
+	 */
+	public function countDataRows()
+	{
+		$this->bootstrapIfNotSet();
 
-    /**
-     * @return array|string[]
-     */
-    public function getFields()
-    {
-        $this->bootstrapIfNotSet();
+		return $this->collectionSource->countDataRows();
+	}
 
-        return $this->collectionSource->getFields();
-    }
+	/**
+	 * @return int
+	 */
+	public function countPages()
+	{
+		return 1;
+	}
 
-    /**
-     * @throws \XeroPHP\Remote\Exception
-     * @return void
-     */
-    private function bootstrapIfNotSet()
-    {
-        if (!$this->collectionSource) {
-            $this->bootstrap();
-        }
-    }
+	/**
+	 * @throws \XeroPHP\Remote\Exception
+	 * @return array|string[]
+	 */
+	public function getFields()
+	{
+		$this->bootstrapIfNotSet();
 
-    /**
-     * @param int $page
-     * @throws \XeroPHP\Remote\Exception
-     * @return void
-     */
-    private function bootstrap($page = 1)
-    {
-        $collection = $this->query->page($page)->execute();
+		return $this->collectionSource->getFields();
+	}
 
-        $this->collectionSource =
-            new XeroCollectionSource($collection);
+	/**
+	 * @throws \XeroPHP\Remote\Exception
+	 * @return void
+	 */
+	private function bootstrapIfNotSet()
+	{
+		if (!$this->collectionSource) {
+			$this->bootstrap();
+		}
+	}
 
-        $this->collectionSource->perPage(
-            count($collection)
-        );
-    }
+	/**
+	 * @param int $page
+	 *
+	 * @throws \XeroPHP\Remote\Exception
+	 * @return void
+	 */
+	private function bootstrap($page = 1)
+	{
+		$collection = $this->query->page($page)->execute();
+
+		$this->collectionSource =
+			new XeroCollectionSource($collection);
+
+		$this->collectionSource->perPage(
+			count($collection)
+		);
+	}
 }

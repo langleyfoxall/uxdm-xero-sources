@@ -10,239 +10,247 @@ use XeroPHP\Remote\Model;
 
 class XeroCollectionSource implements SourceInterface, \ArrayAccess
 {
-    /** @var Collection|Model[] */
-    protected $collection;
+	/** @var Collection|Model[] */
+	protected $collection;
 
-    /** @var array|string[] $fields */
-    protected $fields;
+	/** @var array|string[] $fields */
+	protected $fields;
 
-    /** @var \Closure $dataRowMap */
-    protected $dataRowMap;
+	/** @var \Closure $dataRowMap */
+	protected $dataRowMap;
 
-    /** @var \Closure $dataRowFilter */
-    protected $dataRowFilter;
+	/** @var \Closure $dataRowFilter */
+	protected $dataRowFilter;
 
-    /** @var int $perPage */
-    protected $perPage = 1000;
+	/** @var int $perPage */
+	protected $perPage = 1000;
 
-    /**
-     * @param Collection|Model $entity
-     */
-    public function __construct($entity)
-    {
-        if ($entity instanceof Collection) {
-            $this->collection = $entity;
-        } else if (is_subclass_of($entity, Model::class)) {
-            $collection = new Collection;
-            $collection[] = $entity;
+	/**
+	 * @param Collection|Model $entity
+	 */
+	public function __construct($entity)
+	{
+		if ($entity instanceof Collection) {
+			$this->collection = $entity;
+		} else if (is_subclass_of($entity, Model::class)) {
+			$collection   = new Collection;
+			$collection[] = $entity;
 
-            $this->collection = $collection;
-        } else {
-            throw new \InvalidArgumentException(
-                'Entity must be instance of Remote\Collection or Remote\Model'
-            );
-        }
+			$this->collection = $collection;
+		} else {
+			throw new \InvalidArgumentException(
+				'Entity must be instance of Remote\Collection or Remote\Model'
+			);
+		}
 
-        $this->fields = $this->getFieldsFromFirstRow();
-    }
+		$this->fields = $this->getFieldsFromFirstRow();
+	}
 
-    /**
-     * @param int $count
-     * @return $this|int
-     */
-    public function perPage(int $count = null)
-    {
-        if (empty($count)) {
-            return $this->perPage;
-        }
+	/**
+	 * @param int $count
+	 *
+	 * @return $this|int
+	 */
+	public function perPage(int $count = null)
+	{
+		if (empty($count)) {
+			return $this->perPage;
+		}
 
-        $this->perPage = $count;
+		$this->perPage = $count;
 
-        return $this;
-    }
+		return $this;
+	}
 
-    /**
-     * @param \Closure $closure
-     * @return $this
-     */
-    public function filterCollection(\Closure $closure)
-    {
-        $out = $closure($this->collection);
+	/**
+	 * @param \Closure $closure
+	 *
+	 * @return $this
+	 */
+	public function filterCollection(\Closure $closure)
+	{
+		$out = $closure($this->collection);
 
-        if ($out instanceof Collection) {
-            $this->collection = $collection;
-        }
+		if ($out instanceof Collection) {
+			$this->collection = $out;
+		}
 
-        return $this;
-    }
+		return $this;
+	}
 
-    /**
-     * @param \Closure $closure
-     * @return $this
-     */
-    public function mapCollection(\Closure $closure)
-    {
-        return $this->filterCollection($closure);
-    }
+	/**
+	 * @param \Closure $closure
+	 *
+	 * @return $this
+	 */
+	public function mapCollection(\Closure $closure)
+	{
+		return $this->filterCollection($closure);
+	}
 
-    /**
-     * @param \Closure $closure
-     * @return $this
-     */
-    public function setDataRowMap(\Closure $closure)
-    {
-        $this->dataRowMap = $closure;
+	/**
+	 * @param \Closure $closure
+	 *
+	 * @return $this
+	 */
+	public function setDataRowMap(\Closure $closure)
+	{
+		$this->dataRowMap = $closure;
 
-        return $this;
-    }
+		return $this;
+	}
 
-    /**
-     * @param \Closure $closure
-     * @return $this
-     */
-    public function setDataRowFilter(\Closure $closure)
-    {
-        $this->dataRowFilter = $closure;
+	/**
+	 * @param \Closure $closure
+	 *
+	 * @return $this
+	 */
+	public function setDataRowFilter(\Closure $closure)
+	{
+		$this->dataRowFilter = $closure;
 
-        return $this;
-    }
+		return $this;
+	}
 
-    /**
-     * @return Collection|Model[]
-     */
-    public function getCollection()
-    {
-        return $this->collection;
-    }
+	/**
+	 * @return Collection|Model[]
+	 */
+	public function getCollection()
+	{
+		return $this->collection;
+	}
 
-    /**
-     * @return array
-     */
-    public function getFieldsFromFirstRow()
-    {
-        if (!$this->countDataRows()) {
-            return [];
-        }
+	/**
+	 * @return array
+	 */
+	public function getFieldsFromFirstRow()
+	{
+		if (!$this->countDataRows()) {
+			return [];
+		}
 
-        return array_keys($this->collection->first()->getProperties());
-    }
+		return array_keys($this->collection->first()->getProperties());
+	}
 
-    /**
-     * @param int   $page
-     * @param array $fieldsToRetrieve
-     * @return array
-     */
-    public function getDataRows($page = 1, $fieldsToRetrieve = [])
-    {
-        if (!$this->countDataRows()) {
-            return [];
-        }
+	/**
+	 * @param int   $page
+	 * @param array $fieldsToRetrieve
+	 *
+	 * @return array
+	 */
+	public function getDataRows($page = 1, $fieldsToRetrieve = [])
+	{
+		if (!$this->countDataRows()) {
+			return [];
+		}
 
-        $offset = (($page - 1) * $this->perPage);
-        $rows = array_slice((array)$this->collection, $offset, $this->perPage);
+		$offset = (($page - 1) * $this->perPage);
+		$rows   = array_slice((array)$this->collection, $offset, $this->perPage);
 
-        $dataRows = array_map(function (Model $model) use ($fieldsToRetrieve) {
-            $model = $model->toStringArray();
+		$dataRows = array_map(function (Model $model) use ($fieldsToRetrieve) {
+			$model = $model->toStringArray();
 
-            if (!empty($fieldsToRetrieve)) {
-                $model = array_filter(
-                    $model,
-                    function ($key) use ($fieldsToRetrieve) {
-                        return in_array($key, $fieldsToRetrieve);
-                    },
-                    ARRAY_FILTER_USE_KEY
-                );
-            }
+			if (!empty($fieldsToRetrieve)) {
+				$model = array_filter(
+					$model,
+					function ($key) use ($fieldsToRetrieve) {
+						return in_array($key, $fieldsToRetrieve);
+					},
+					ARRAY_FILTER_USE_KEY
+				);
+			}
 
-            $dataRow = new DataRow;
-            $dottedArray = Arr::dot($model);
+			$dataRow     = new DataRow;
+			$dottedArray = Arr::dot($model);
 
-            foreach ($dottedArray as $field => $value) {
-                $dataRow->addDataItem(new DataItem($field, $value));
-            }
+			foreach ($dottedArray as $field => $value) {
+				$dataRow->addDataItem(new DataItem($field, $value));
+			}
 
-            return $dataRow;
-        }, $rows);
+			return $dataRow;
+		}, $rows);
 
-        if (!empty($this->dataRowFilter)) {
-            $dataRows = array_filter(
-                $dataRows,
-                $this->dataRowFilter
-            );
-        }
+		if (!empty($this->dataRowFilter)) {
+			$dataRows = array_filter(
+				$dataRows,
+				$this->dataRowFilter
+			);
+		}
 
-        if (!empty($this->dataRowMap)) {
-            $dataRows = array_map(
-                $this->dataRowMap,
-                $dataRows
-            );
-        }
+		if (!empty($this->dataRowMap)) {
+			$dataRows = array_map(
+				$this->dataRowMap,
+				$dataRows
+			);
+		}
 
-        return $dataRows;
-    }
+		return $dataRows;
+	}
 
-    /**
-     * @return array|string[]
-     */
-    public function getFields()
-    {
-        return $this->fields;
-    }
+	/**
+	 * @return array|string[]
+	 */
+	public function getFields()
+	{
+		return $this->fields;
+	}
 
-    /**
-     * @return int
-     */
-    public function countDataRows()
-    {
-        return count($this->collection);
-    }
+	/**
+	 * @return int
+	 */
+	public function countDataRows()
+	{
+		return count($this->collection);
+	}
 
-    /**
-     * @return int
-     */
-    public function countPages()
-    {
-        return ceil($this->countDataRows() / $this->perPage);
-    }
+	/**
+	 * @return int
+	 */
+	public function countPages()
+	{
+		return ceil($this->countDataRows() / $this->perPage);
+	}
 
-    /**
-     * @param integer $offset
-     * @return bool
-     */
-    public function offsetExists($offset)
-    {
-        return isset($this->collection[$offset]);
-    }
+	/**
+	 * @param integer $offset
+	 *
+	 * @return bool
+	 */
+	public function offsetExists($offset)
+	{
+		return isset($this->collection[ $offset ]);
+	}
 
-    /**
-     * @param integer $offset
-     * @return Model
-     */
-    public function offsetGet($offset)
-    {
-        return $this->collection[$offset];
-    }
+	/**
+	 * @param integer $offset
+	 *
+	 * @return Model
+	 */
+	public function offsetGet($offset)
+	{
+		return $this->collection[ $offset ];
+	}
 
-    /**
-     * @param integer $offset
-     * @param Model   $value
-     */
-    public function offsetSet($offset, $value)
-    {
-        if (!is_subclass_of($value, Model::class)) {
-            throw new \InvalidArgumentException(
-                'Entity must be instance of Remote\Model'
-            );
-        }
+	/**
+	 * @param integer $offset
+	 * @param Model   $value
+	 */
+	public function offsetSet($offset, $value)
+	{
+		if (!is_subclass_of($value, Model::class)) {
+			throw new \InvalidArgumentException(
+				'Entity must be instance of Remote\Model'
+			);
+		}
 
-        $this->collection[$offset] = $value;
-    }
+		$this->collection[ $offset ] = $value;
+	}
 
-    /**
-     * @param integer $offset
-     */
-    public function offsetUnset($offset)
-    {
-        unset($this->collection[$offset]);
-    }
+	/**
+	 * @param integer $offset
+	 */
+	public function offsetUnset($offset)
+	{
+		unset($this->collection[ $offset ]);
+	}
 }
