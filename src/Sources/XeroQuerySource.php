@@ -21,6 +21,21 @@ class XeroQuerySource implements SourceInterface
     }
 
     /**
+     * @param \Closure $closure
+     * @return $this
+     */
+    public function query(\Closure $closure)
+    {
+        $out = $closure($this->query);
+
+        if ($out instanceof Query) {
+            $this->query = $query;
+        }
+
+        return $this;
+    }
+
+    /**
      * @param int   $page
      * @param array $fieldsToRetrieve
      * @throws \XeroPHP\Remote\Exception
@@ -35,19 +50,43 @@ class XeroQuerySource implements SourceInterface
         );
     }
 
+    /**
+     * @return int
+     */
     public function countDataRows()
     {
+        $this->bootstrapIfNotSet();
+
         return $this->collectionSource->countDataRows();
     }
 
+    /**
+     * @return int
+     */
     public function countPages()
     {
-        //
+        return 1;
     }
 
+    /**
+     * @return array|string[]
+     */
     public function getFields()
     {
+        $this->bootstrapIfNotSet();
+
         return $this->collectionSource->getFields();
+    }
+
+    /**
+     * @throws \XeroPHP\Remote\Exception
+     * @return void
+     */
+    private function bootstrapIfNotSet()
+    {
+        if (!$this->collectionSource) {
+            $this->bootstrap();
+        }
     }
 
     /**
