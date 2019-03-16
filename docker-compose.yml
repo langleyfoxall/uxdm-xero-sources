@@ -5,5 +5,21 @@ services:
     image: richarvey/nginx-php-fpm:latest
     volumes:
       - ./:/var/www/html
+    networks:
+      - develop
+    depends_on:
+      - database
     ports:
       - "80:80"
+  database:
+    image: mysql:5.6
+    networks:
+      - develop
+    ports:
+      - "3307:3306"
+    environment:
+      - MYSQL_DATABASE=develop
+      - MYSQL_ROOT_PASSWORD=root
+
+networks:
+  develop:
