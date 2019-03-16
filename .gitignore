@@ -1,6 +1,9 @@
 vendor/
 certs/
 
+.idea/
+.code/
+
 .DS_Store
 .env
 
