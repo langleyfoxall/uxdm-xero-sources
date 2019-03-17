@@ -122,11 +122,20 @@ class XeroCollectionSource implements SourceInterface, \ArrayAccess
 		$rows   = array_slice((array)$this->collection, $offset, $this->perPage);
 
 		$dataRows = array_map(function (Model $model) use ($fieldsToRetrieve) {
-			$model = $model->toStringArray();
+			$properties = array_keys($model->getProperties());
+			$arr = [];
+
+			foreach($properties as $property) {
+				$method = 'get'.ucfirst($property);
+
+				if (method_exists($model, $method)) {
+					$arr[$property] = $model->{$method}();
+				}
+			}
 
 			if (!empty($fieldsToRetrieve)) {
-				$model = array_filter(
-					$model,
+				$arr = array_filter(
+					$arr,
 					function ($key) use ($fieldsToRetrieve) {
 						return in_array($key, $fieldsToRetrieve);
 					},
@@ -135,7 +144,7 @@ class XeroCollectionSource implements SourceInterface, \ArrayAccess
 			}
 
 			$dataRow     = new DataRow;
-			$dottedArray = Arr::dot($model);
+			$dottedArray = Arr::dot($arr);
 
 			foreach ($dottedArray as $field => $value) {
 				$dataRow->addDataItem(new DataItem($field, $value));
