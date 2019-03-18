@@ -60,11 +60,15 @@ class XeroQuerySource implements SourceInterface
 	 */
 	public function getDataRows($page = 1, $fieldsToRetrieve = [])
 	{
-		$this->bootstrap($page);
+		try {
+            $this->bootstrap($page);
 
-		return $this->collectionSource->getDataRows(
-			1, $fieldsToRetrieve
-		);
+            return $this->collectionSource->getDataRows(
+                1, $fieldsToRetrieve
+            );
+        } catch (\Exception $e) {
+		    return [];
+        }
 	}
 
 	/**
