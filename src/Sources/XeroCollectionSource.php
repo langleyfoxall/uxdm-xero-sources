@@ -129,7 +129,11 @@ class XeroCollectionSource implements SourceInterface, \ArrayAccess
 				$method = 'get'.ucfirst($property);
 
 				if (method_exists($model, $method)) {
-					$arr[$property] = $model->{$method}();
+					try {
+                        $arr[$property] = $model->{$method}();
+                    } catch (\Exception $e) {
+					    $arr[$property] = null;
+                    }
 				}
 			}
 
