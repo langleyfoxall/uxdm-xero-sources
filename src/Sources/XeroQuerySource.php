@@ -4,6 +4,7 @@ namespace LangleyFoxall\uxdm\Sources;
 use DivineOmega\uxdm\Interfaces\SourceInterface;
 use LangleyFoxall\uxdm\Traits\HasFilters;
 use LangleyFoxall\uxdm\Traits\HasMaps;
+use XeroPHP\Remote\Collection;
 use XeroPHP\Remote\Model;
 use XeroPHP\Remote\Query;
 
@@ -154,10 +155,14 @@ class XeroQuerySource implements SourceInterface
      */
     private function bootstrap($page = 1)
     {
-        $collection =
-            $this->pageable
-                ? $this->query->page($page)->execute()
-                : $this->query->execute();
+        if ($page > 1 && !$this->pageable) {
+			$collection = new Collection;
+		} else {
+			$collection =
+				$this->pageable
+					? $this->query->page($page)->execute()
+					: $this->query->execute();
+		}
 
         $this->collectionSource =
             new XeroCollectionSource($collection);
