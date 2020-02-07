@@ -9,3 +9,5 @@ certs/
 
 *.php
 !src/**/*.php
+
+composer.lock

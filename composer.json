@@ -1,22 +1,24 @@
 {
-    "name": "langleyfoxall/uxdm-xero-sources",
-    "description": "Xero sources for UXDM",
+	"name": "langleyfoxall/uxdm-xero-sources",
+	"description": "Xero sources for UXDM",
 	"authors": [
 		{
 			"name": "Dexter Marks-Barber",
 			"email": "dexter@langleyfoxall.co.uk"
 		}
 	],
-    "require": {
-        "calcinai/xero-php": "^1.8",
-        "divineomega/uxdm": "^2.7",
-		"divineomega/dotenv-loader": "^2.0",
-		"illuminate/support": "^5.1"
-    },
+	"require": {
+		"calcinai/xero-php": "^1.8",
+		"divineomega/uxdm": "^2.7",
+		"illuminate/support": "^5.8"
+	},
+	"require-dev": {
+		"divineomega/dotenv-loader": "^2.0"
+	},
 	"autoload": {
 		"psr-4": {
 			"LangleyFoxall\\uxdm\\": "src/"
 		}
 	},
-    "license": "LGPL-3.0-only"
+	"license": "LGPL-3.0-only"
 }
